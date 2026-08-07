@@ -8,4 +8,3 @@
 
 - Fixes `.address` for typed lists backed by the Emscripten heap.
 - Adds typed-data address coverage to the bundled Emscripten example.
-
