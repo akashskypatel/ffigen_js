@@ -513,8 +513,11 @@ extension type NativeLibrary(JSObject _) implements JSObject {
   external JSUint32Array get HEAPU32;
   external JSFloat32Array get HEAPF32;
 
+  // ignore: unused_element, non_constant_identifier_names
   external int _emscripten_stack_get_base();
+  // ignore: non_constant_identifier_names, unused_element
   external Pointer _emscripten_stack_get_current();
+  // ignore: non_constant_identifier_names, unused_element
   external int _emscripten_stack_get_free();
 }
 
@@ -648,7 +651,7 @@ extension type Float64ArrayWrapper._(JSObject _) implements JSObject {
 
 extension Uint8ListExtension on Uint8List {
   Pointer<Uint8> get address {
-    final jsArray = this.toJS as JSUint8Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Uint8>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Uint8>(this);
@@ -661,7 +664,7 @@ extension Uint8ListExtension on Uint8List {
 
 extension Float32ListExtension on Float32List {
   Pointer<Float32> get address {
-    final jsArray = this.toJS as JSFloat32Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Float32>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Float32>(this);
@@ -678,7 +681,7 @@ extension Float32ListExtension on Float32List {
 
 extension Int16ListExtension on Int16List {
   Pointer<Int16> get address {
-    final jsArray = this.toJS as JSInt16Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Int16>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Int16>(this);
@@ -695,7 +698,7 @@ extension Int16ListExtension on Int16List {
 
 extension Uint16ListExtension on Uint16List {
   Pointer<Uint16> get address {
-    final jsArray = this.toJS as JSUint16Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Uint16>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Uint16>(this);
@@ -712,7 +715,7 @@ extension Uint16ListExtension on Uint16List {
 
 extension UInt32ListExtension on Uint32List {
   Pointer<Uint32> get address {
-    final jsArray = this.toJS as JSUint32Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Uint32>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Uint32>(this);
@@ -729,7 +732,7 @@ extension UInt32ListExtension on Uint32List {
 
 extension Int32ListExtension on Int32List {
   Pointer<Int32> get address {
-    final jsArray = this.toJS as JSInt32Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Int32>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Int32>(this);
@@ -747,7 +750,7 @@ extension Int32ListExtension on Int32List {
 extension Int64ListExtension on Int64List {
   Pointer<Int64> get address {
     final bytes = buffer.asUint8List(offsetInBytes, lengthInBytes);
-    final jsArray = bytes.toJS as JSUint8Array;
+    final jsArray = bytes.toJS;
     final heapAddress = _wasmHeapAddress<Int64>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Int64>(this);
@@ -762,7 +765,7 @@ extension Int64ListExtension on Int64List {
 
 extension Float64ListExtension on Float64List {
   Pointer<Float64> get address {
-    final jsArray = this.toJS as JSFloat64Array;
+    final jsArray = toJS;
     final heapAddress = _wasmHeapAddress<Float64>(this, jsArray);
     if (heapAddress != null) return heapAddress;
     final ptr = _getPointer<Float64>(this);
