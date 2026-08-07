@@ -13,11 +13,10 @@ void _expectHeapAddress(TypedData data, int address, String label) {
 void main(List<String> args) async {
   print("Running WASM example");
   GeneratedBindings.initBindings("module");
-  final bindings = ExampleBindings();
 
-  assert(bindings.returns_bool() == false);
+  assert(returns_bool() == false);
 
-  var structWithArray = bindings.return_struct_with_array_by_value();
+  var structWithArray = return_struct_with_array_by_value();
 
   assert(structWithArray.array1[0] == 10.0, structWithArray.array1[0]);
   assert(structWithArray.array1[1] == 20.0, structWithArray.array1[1]);
@@ -32,16 +31,15 @@ void main(List<String> args) async {
   final floatPointer = Float32.stackAlloc(1);
   floatPointer.setValue(5.0);
   assert(floatPointer.getValue() == 5.0, floatPointer.getValue());
-  assert(bindings.sum(1, 2) == 3);
-  assert(bindings.sum_with_typedef(1, 2) == 3);
-  assert(bindings.subtract(intPointer, 2) == 9);
-  assert((bindings.divide(10, 2).getValue() - 5.0).abs() < 0.0001);
-  assert(
-      bindings.divide_precision(floatPointer, floatPointer).getValue() == 1.0);
-  var copy = bindings.copy_string('MY STRING'.toNativeUtf8());
+  assert(sum(1, 2) == 3);
+  assert(sum_with_typedef(1, 2) == 3);
+  assert(subtract(intPointer, 2) == 9);
+  assert((divide(10, 2).getValue() - 5.0).abs() < 0.0001);
+  assert(divide_precision(floatPointer, floatPointer).getValue() == 1.0);
+  var copy = copy_string('MY STRING'.toNativeUtf8());
   assert(copy.toDartString() == 'MY STRING', copy.toDartString());
 
-  var myStruct = bindings.return_struct_by_value(10.0, copy);
+  var myStruct = return_struct_by_value(10.0, copy);
 
   assert(myStruct.a == 10.0, myStruct.a);
   assert(myStruct.c == 2, myStruct.c);
@@ -59,21 +57,18 @@ void main(List<String> args) async {
     ..x = 1.0
     ..y = 2.0
     ..z = 3.0;
-  assert(bindings.struct_as_argument(structArg) == 6,
-      bindings.struct_as_argument(structArg));
+  assert(struct_as_argument(structArg) == 6, struct_as_argument(structArg));
 
-  bindings.accept_struct_ptr(Pointer<Never>(0));
+  accept_struct_ptr(Pointer<Never>(0));
 
   print("structArgument done");
-  assert(bindings.GLOBALINT.toString() == "9223372036854775808",
-      bindings.GLOBALINT.toString());
+  assert(GLOBALINT.toString() == "9223372036854775808", GLOBALINT.toString());
 
-  final bigIntFnResult =
-      bindings.bigint_method(BigInt.parse("9223372036854775808"));
+  final bigIntFnResult = bigint_method(BigInt.parse("9223372036854775808"));
   assert(bigIntFnResult == BigInt.parse("9223372036854775809"),
       bigIntFnResult.toString());
 
-  final sizeTresult = bindings.size_tmethod(12345);
+  final sizeTresult = size_tmethod(12345);
   assert(sizeTresult == 12346, sizeTresult);
 
   var done = false;
@@ -82,7 +77,7 @@ void main(List<String> args) async {
   };
 
   final fnPtr = callback.addFunction();
-  bindings.accept_fn_pointer_with_no_args(fnPtr);
+  accept_fn_pointer_with_no_args(fnPtr);
   assert(done);
 
   done = false;
@@ -95,7 +90,7 @@ void main(List<String> args) async {
     done = true;
   }.addFunction();
 
-  bindings.accept_fn_pointer_with_primitive_args(fnPtr2);
+  accept_fn_pointer_with_primitive_args(fnPtr2);
 
   fnPtr.dispose();
 
@@ -107,9 +102,9 @@ void main(List<String> args) async {
     done = true;
   }.addFunction();
 
-  bindings.accept_fn_pointer_with_ptr_args(fnPtr3);
+  accept_fn_pointer_with_ptr_args(fnPtr3);
   done = false;
-  bindings.accept_fn_typedef_arg(fnPtr3.cast());
+  accept_fn_typedef_arg(fnPtr3.cast());
   fnPtr3.dispose();
 
   assert(done);
@@ -166,15 +161,14 @@ void main(List<String> args) async {
   final meshData = TGltfMeshData.stackAlloc().toDart();
   meshData.vertexCount = 3;
   meshData.indexCount = 3;
-  // Set primitive type via int value (TRIANGLES = 4)
-  meshData.primitiveType = TPrimitiveType.PRIMITIVETYPE_TRIANGLES;
+  meshData.primitiveTypeAsInt = 4;
   assert(meshData.primitiveType == TPrimitiveType.PRIMITIVETYPE_TRIANGLES);
+  assert(meshData.primitiveTypeAsInt == 4);
 
-  // Test setting primitive type via int (TRIANGLE_STRIP = 5)
-  meshData.primitiveType = TPrimitiveType.PRIMITIVETYPE_TRIANGLE_STRIP;
+  meshData.primitiveTypeAsInt = 5;
   assert(meshData.primitiveType == TPrimitiveType.PRIMITIVETYPE_TRIANGLE_STRIP);
 
-  bindings.foo(meshData);
+  foo(meshData);
   print("TGltfMeshData enum test passed");
 
   // TypedData address tests use native writers so failures detect writes that
@@ -184,26 +178,26 @@ void main(List<String> args) async {
   final float32 = makeFloat32List(3);
   final float32Address = float32.address;
   _expectHeapAddress(float32, float32Address.addr, 'Float32List');
-  bindings.write_float32_for_address_test(float32Address);
+  write_float32_for_address_test(float32Address);
   assert(float32[0] == 12.5, 'Float32List did not observe a native write');
   final float32Bytes = float32.asUint8List();
   assert(float32Bytes.address.addr == float32Address.addr,
       'Float32List byte view did not retain its heap address');
-  bindings.write_float32_for_address_test(float32Bytes.address.cast<Float32>());
+  write_float32_for_address_test(float32Bytes.address.cast<Float32>());
   assert(float32[0] == 12.5,
       'Float32List did not observe a native write through its byte view');
   final float32Subview = Float32List.sublistView(float32, 1, 3);
   final float32SubviewAddress = float32Subview.address;
   assert(float32SubviewAddress.addr == float32Address.addr + 4,
       'Float32List subview did not retain its non-zero heap offset');
-  bindings.write_float32_for_address_test(float32SubviewAddress);
+  write_float32_for_address_test(float32SubviewAddress);
   assert(float32[1] == 12.5,
       'Float32List did not observe a native write through its subview');
 
   final int16 = makeInt16List(3);
   final int16Address = int16.address;
   _expectHeapAddress(int16, int16Address.addr, 'Int16List');
-  bindings.write_int16_for_address_test(int16Address);
+  write_int16_for_address_test(int16Address);
   assert(int16[0] == -1234, 'Int16List did not observe a native write');
   assert(int16.asUint8List().address.addr == int16Address.addr,
       'Int16List byte view did not retain its heap address');
@@ -211,7 +205,7 @@ void main(List<String> args) async {
   final uint16 = makeUint16List(3);
   final uint16Address = uint16.address;
   _expectHeapAddress(uint16, uint16Address.addr, 'Uint16List');
-  bindings.write_uint16_for_address_test(uint16Address);
+  write_uint16_for_address_test(uint16Address);
   assert(uint16[0] == 54321, 'Uint16List did not observe a native write');
   assert(uint16.asUint8List().address.addr == uint16Address.addr,
       'Uint16List byte view did not retain its heap address');
@@ -219,7 +213,7 @@ void main(List<String> args) async {
   final int32 = makeInt32List(3);
   final int32Address = int32.address;
   _expectHeapAddress(int32, int32Address.addr, 'Int32List');
-  bindings.write_int32_for_address_test(int32Address);
+  write_int32_for_address_test(int32Address);
   assert(int32[0] == -123456789, 'Int32List did not observe a native write');
   assert(int32.asUint8List().address.addr == int32Address.addr,
       'Int32List byte view did not retain its heap address');
@@ -227,7 +221,7 @@ void main(List<String> args) async {
   final int64 = makeInt64List(3);
   final int64Address = int64.address;
   _expectHeapAddress(int64, int64Address.addr, 'Int64List');
-  bindings.write_int64_for_address_test(int64Address);
+  write_int64_for_address_test(int64Address);
   assert(int64[0] == -9007199254740995,
       'Int64List did not observe a native write');
   assert(int64.asUint8List().address.addr == int64Address.addr,
@@ -236,7 +230,7 @@ void main(List<String> args) async {
   final uint32 = makeUint32List(3);
   final uint32Address = uint32.address;
   _expectHeapAddress(uint32, uint32Address.addr, 'Uint32List');
-  bindings.write_uint32_for_address_test(uint32Address);
+  write_uint32_for_address_test(uint32Address);
   assert(uint32[0] == 3456789012, 'Uint32List did not observe a native write');
   assert(uint32.asUint8List().address.addr == uint32Address.addr,
       'Uint32List byte view did not retain its heap address');
@@ -244,13 +238,13 @@ void main(List<String> args) async {
   final uint8 = makeUint8List(3);
   final uint8Address = uint8.address;
   _expectHeapAddress(uint8, uint8Address.addr, 'Uint8List');
-  bindings.write_uint8_for_address_test(uint8Address);
+  write_uint8_for_address_test(uint8Address);
   assert(uint8[0] == 201, 'Uint8List did not observe a native write');
 
   final float64 = makeFloat64List(3);
   final float64Address = float64.address;
   _expectHeapAddress(float64, float64Address.addr, 'Float64List');
-  bindings.write_float64_for_address_test(float64Address);
+  write_float64_for_address_test(float64Address);
   assert(float64[0] == 9876.5, 'Float64List did not observe a native write');
   assert(float64.asUint8List().address.addr == float64Address.addr,
       'Float64List byte view did not retain its heap address');
@@ -276,7 +270,7 @@ void main(List<String> args) async {
   final dartFloat64Address = dartFloat64.address;
 
   assert(
-      bindings.verify_typed_data_inputs_for_address_test(
+      verify_typed_data_inputs_for_address_test(
         dartUint8Address,
         dartInt16Address,
         dartUint16Address,
@@ -288,14 +282,14 @@ void main(List<String> args) async {
       ),
       'Ordinary Dart typed lists were not copied into Wasm memory correctly');
 
-  bindings.write_uint8_for_address_test(dartUint8Address);
-  bindings.write_int16_for_address_test(dartInt16Address);
-  bindings.write_uint16_for_address_test(dartUint16Address);
-  bindings.write_int32_for_address_test(dartInt32Address);
-  bindings.write_int64_for_address_test(dartInt64Address);
-  bindings.write_uint32_for_address_test(dartUint32Address);
-  bindings.write_float32_for_address_test(dartFloat32Address);
-  bindings.write_float64_for_address_test(dartFloat64Address);
+  write_uint8_for_address_test(dartUint8Address);
+  write_int16_for_address_test(dartInt16Address);
+  write_uint16_for_address_test(dartUint16Address);
+  write_int32_for_address_test(dartInt32Address);
+  write_int64_for_address_test(dartInt64Address);
+  write_uint32_for_address_test(dartUint32Address);
+  write_float32_for_address_test(dartFloat32Address);
+  write_float64_for_address_test(dartFloat64Address);
   assert(
       dartUint8[0] == 17 &&
           dartInt16[0] == -18 &&
@@ -313,7 +307,7 @@ void main(List<String> args) async {
   final largeDartUint8Address = largeDartUint8.address;
   assert(largeDartUint8Address.asTypedList(1)[0] == 99,
       'The malloc-backed input was not copied into Wasm memory');
-  bindings.write_uint8_for_address_test(largeDartUint8Address);
+  write_uint8_for_address_test(largeDartUint8Address);
   assert(largeDartUint8[0] == 99,
       'A native write to a malloc-backed copy changed the Dart list');
   largeDartUint8Address.free();
@@ -346,7 +340,7 @@ void main(List<String> args) async {
   final valB = Int32.stackAlloc(1)..setValue(20);
   a[0] = valA;
   b[0] = valB;
-  final swapped = bindings.ptr_ptr(a, b);
+  final swapped = ptr_ptr(a, b);
   // ptr_ptr swaps: out[0] = *b, out[1] = *a
   assert(swapped[0].getValue() == 20, "swapped[0]=${swapped[0].getValue()}");
   assert(swapped[1].getValue() == 10, "swapped[1]=${swapped[1].getValue()}");

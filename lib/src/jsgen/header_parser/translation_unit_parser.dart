@@ -47,7 +47,8 @@ Set<Binding> parseTranslationUnit(clang_types.CXCursor translationUnitCursor) {
             _logger.finer('rootCursorVisitor: CursorKind not implemented');
         }
       } else {
-        _logger.finest('rootCursorVisitor:(not included) ${cursor.completeStringRepr()}');
+        _logger.finest(
+            'rootCursorVisitor:(not included) ${cursor.completeStringRepr()}');
       }
     } catch (e, s) {
       _logger.severe(e);
