@@ -85,7 +85,31 @@ extension StructAllocator<T extends NativeType> on Struct {
 
 ### calloc/malloc
 
-### .address on TypedData (Float32List, Uint8List, etc)
+### TypedData pointers
+
+For `Uint8List`, `Int16List`, `Uint16List`, `Int32List`, `Int64List`,
+`Uint32List`, `Float32List`, and `Float64List` values that are not already
+backed by Emscripten memory, `.address` allocates Wasm memory and copies the
+list's current contents into it. This is a one-way copy intended for immediate
+input to a synchronous native call. Native writes through the returned pointer
+are not copied back to the original Dart list.
+
+Copied inputs smaller than 32 KiB use Emscripten stack allocation; larger
+inputs use `malloc`. Bracket temporary input allocations with `stackSave` and
+`stackRestore`, and call `free()` on the returned pointer (it releases the
+`malloc` allocation when one was used).
+
+For native output, use a typed-list view over Emscripten memory. The
+`makeUint8List`, `makeInt16List`, `makeUint16List`, `makeInt32List`,
+`makeInt64List`, `makeUint32List`, `makeFloat32List`, and `makeFloat64List`
+helpers create such views using Emscripten stack allocation. Their `.address`
+returns the existing byte offset, so native writes are immediately visible
+from Dart. These views remain valid until their stack allocation is restored.
+Derived byte views such as `floatList.asUint8List()` retain the same address.
+
+Heap-backed views must be recreated after `WebAssembly.Memory` grows because
+Emscripten replaces its `HEAP*` typed-array views. The bundled example uses
+fixed-size Wasm memory.
 
 
 ## Example
@@ -98,14 +122,15 @@ git clone https://github.com/nmfisher/ffigen_js
 cd ffigen_js/example
 dart pub get
 dart run ffigen --config ffi_config.yaml
-dart run jsgen --config js_config.yaml
 ```
 
-This will generate FFI bindings in [generated_bindings_ffi.dart](./example/lib/generated_bindings_ffi.g.dart) and [generated_bindings_js.g.dart](./example/lib/generated_bindings_js.g.dart). A conditional import file has already been created in [generated_bindings.dart](./example/lib/generated_bindings.dart); 
+This generates the native FFI bindings. The example build regenerates its JS
+bindings automatically.
 
 To run the application, make sure you have emscripten and node installed and available on your PATH, then call ./build.sh
 This will:
-1) compile [example.cpp](./example/native/src/example.cpp) with Emscripten (which produces example_lib.js and example_lib.wasm in [./example/build](./example/build))
+1) regenerate the JS bindings
 2) compile [example.dart](./example/bin/example.dart) with Dart to WASM
-3) use Node to load/execute the Dart application and example WASM module 
-
+3) compile [example.cpp](./example/native/src/example.cpp) with Emscripten
+4) use Node to execute the Dart application and native module, including the
+   TypedData address regression checks

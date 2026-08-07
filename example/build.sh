@@ -1,4 +1,5 @@
 mkdir -p build
+dart run ../lib/src/jsgen/executables/jsgen.dart --config js_config.yaml || exit -1;
 dart compile wasm --enable-asserts  bin/example.dart -O0 --shared-memory=100 -v -o build/example.wasm || exit -1;
 cd build
 emcc --no-entry \

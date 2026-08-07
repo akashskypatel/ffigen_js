@@ -25,6 +25,57 @@ void EMSCRIPTEN_KEEPALIVE write(int32_t *out) {
     *out = 10;
 }
 
+void EMSCRIPTEN_KEEPALIVE write_uint8_for_address_test(uint8_t *out) {
+    out[0] = 201;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_int16_for_address_test(int16_t *out) {
+    out[0] = -1234;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_uint16_for_address_test(uint16_t *out) {
+    out[0] = 54321;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_int32_for_address_test(int32_t *out) {
+    out[0] = -123456789;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_int64_for_address_test(int64_t *out) {
+    out[0] = -9007199254740995LL;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_uint32_for_address_test(uint32_t *out) {
+    out[0] = 3456789012u;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_float32_for_address_test(float *out) {
+    out[0] = 12.5f;
+}
+
+void EMSCRIPTEN_KEEPALIVE write_float64_for_address_test(double *out) {
+    out[0] = 9876.5;
+}
+
+bool EMSCRIPTEN_KEEPALIVE verify_typed_data_inputs_for_address_test(
+        uint8_t *uint8_value,
+        int16_t *int16_value,
+        uint16_t *uint16_value,
+        int32_t *int32_value,
+        int64_t *int64_value,
+        uint32_t *uint32_value,
+        float *float32_value,
+        double *float64_value) {
+    return uint8_value[0] == 17 &&
+        int16_value[0] == -18 &&
+        uint16_value[0] == 60000 &&
+        int32_value[0] == -1234567 &&
+        int64_value[0] == -9007199254740993LL &&
+        uint32_value[0] == 4000000000u &&
+        float32_value[0] == 1.25f &&
+        float64_value[0] == -2.5;
+}
+
 void EMSCRIPTEN_KEEPALIVE check_buffer(uint8_t *addr) {
     for(int i = 0; i < 10; i++) {
         emscripten_console_logf("%d %d", i, addr[i]);

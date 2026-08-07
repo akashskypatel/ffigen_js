@@ -61,6 +61,23 @@ typedef struct StructWithStruct StructWithStruct;
 typedef int INTTYPE;
 
 void write(int32_t* out);
+void write_uint8_for_address_test(uint8_t *out);
+void write_int16_for_address_test(int16_t *out);
+void write_uint16_for_address_test(uint16_t *out);
+void write_int32_for_address_test(int32_t *out);
+void write_int64_for_address_test(int64_t *out);
+void write_uint32_for_address_test(uint32_t *out);
+void write_float32_for_address_test(float *out);
+void write_float64_for_address_test(double *out);
+bool verify_typed_data_inputs_for_address_test(
+    uint8_t *uint8_value,
+    int16_t *int16_value,
+    uint16_t *uint16_value,
+    int32_t *int32_value,
+    int64_t *int64_value,
+    uint32_t *uint32_value,
+    float *float32_value,
+    double *float64_value);
 int sum(int a, int b);
 
 INTTYPE sum_with_typedef(INTTYPE a, INTTYPE b);
@@ -123,4 +140,3 @@ void foo(TGltfMeshData str);
 #ifdef __cplusplus
 }
 #endif
-

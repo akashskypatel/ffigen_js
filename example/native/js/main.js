@@ -23,5 +23,7 @@ async function runDartWasm() {
     instantiatedApp.invokeMain();
 }
 
-runDartWasm().catch(console.error);
-
+runDartWasm().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});
