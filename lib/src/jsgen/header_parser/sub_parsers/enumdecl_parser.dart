@@ -53,7 +53,8 @@ final _logger = Logger('ffigen.header_parser.enumdecl_parser');
   if (enumName.isEmpty) {
     _logger.fine('Saving anonymous enum.');
     final addedConstants = saveUnNamedEnum(cursor);
-    hasNegativeEnumConstants = addedConstants.where((c) => c.rawValue.startsWith('-')).isNotEmpty;
+    hasNegativeEnumConstants =
+        addedConstants.where((c) => c.rawValue.startsWith('-')).isNotEmpty;
   } else if (ignoreFilter || shouldIncludeEnumClass(decl)) {
     _logger.fine('++++ Adding Enum: ${cursor.completeStringRepr()}');
     enumClass = EnumClass(
@@ -62,9 +63,7 @@ final _logger = Logger('ffigen.header_parser.enumdecl_parser');
       originalName: enumName,
       name: config.enumClassDecl.rename(decl),
       nativeType: nativeType,
-      // Always generate as int for JS/WASM — Dart enums don't work
-      // with raw int values from getValue/setValue.
-      generateAsInt: true,
+      generateAsInt: config.enumShouldBeInt(decl),
     );
     cursor.visitChildren((clang_types.CXCursor child) {
       try {

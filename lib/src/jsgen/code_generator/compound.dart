@@ -7,10 +7,6 @@ import 'binding_string.dart';
 import 'utils.dart';
 import 'writer.dart';
 
-int _alignOffset(int offset, int alignment) {
-  return (offset + alignment - 1) & ~(alignment - 1);
-}
-
 enum CompoundType { struct, union }
 
 /// A binding for Compound type - Struct/Union.
@@ -97,9 +93,18 @@ abstract class Compound extends BindingType {
     }
   }
 
+  String _getInlineArrayTypeString(Type type, Writer w) {
+    if (type is ConstantArray) {
+      return 'Array<'
+          '${_getInlineArrayTypeString(type.child, w)}>';
+    }
+    return type.getWasmInteropType(w);
+  }
+
   @override
   BindingString toBindingString(Writer w, {bool writeModuleBinding = false}) {
-    final bindingType = isStruct ? BindingStringType.struct : BindingStringType.union;
+    final bindingType =
+        isStruct ? BindingStringType.struct : BindingStringType.union;
 
     final s = StringBuffer();
     final enclosingClassName = name;
@@ -129,12 +134,6 @@ extension ${name}Ext on Pointer<$name> {
   $enclosingClassName toDart() {
     return $enclosingClassName(this);
   }
-  $enclosingClassName operator [](int i) {
-    return $enclosingClassName(Pointer<$enclosingClassName>(addr + i * $sizeInBytes));
-  }
-  void operator []=(int i, $enclosingClassName value) {
-    _copyBytes(addr + i * $sizeInBytes, value.address.addr, $sizeInBytes);
-  }
 }''');
 
     s.write('''
@@ -145,11 +144,6 @@ final class $enclosingClassName extends  ${isOpaque ? 'Struct' : dartClassName} 
     const depth = '  ';
     int offset = 0;
     for (final m in members) {
-      // Align offset to this field's alignment requirement (structs only;
-      // union members all share offset 0).
-      if (isStruct) {
-        offset = _alignOffset(offset, m.type.alignmentInBytes);
-      }
       m.name = localUniqueNamer.makeUnique(m.name);
       if (m.dartDoc != null) {
         s.write('$depth/// ');
@@ -158,9 +152,11 @@ final class $enclosingClassName extends  ${isOpaque ? 'Struct' : dartClassName} 
       }
       final memberName = m.name;
 
-      final dartType = m.type is PointerType ? m.type.getDartType(w) : m.type.getInteropDartType(w);
+      final dartType = m.type is PointerType
+          ? m.type.getDartType(w)
+          : m.type.getInteropDartType(w);
 
-      final toDart = switch (m.type.typealiasType.getDartType(w)) {
+      final toDart = switch (m.type.getDartType(w)) {
         'double' => '.toDartDouble',
         'int' => '.toDartInt',
         _ => m.type is EnumClass ? '.toDartInt' : ''
@@ -178,7 +174,7 @@ final class $enclosingClassName extends  ${isOpaque ? 'Struct' : dartClassName} 
           return inner;
         } else if (m.type is BooleanType) {
           return '$inner.toDartInt == 1';
-        } else if (m.type is Compound) {
+        } else if (m.type is BindingType) {
           return '${m.type.getInteropDartType(w)}(Pointer<${m.type.getInteropDartType(w)}>(addr))';
         }
         return inner;
@@ -193,7 +189,7 @@ final class $enclosingClassName extends  ${isOpaque ? 'Struct' : dartClassName} 
           // EnumClass extends BindingType, so check it before BindingType.
           // For enum members, we just convert the int value to JS.
           return '$inner.toJS';
-        } else if (m.type is Compound) {
+        } else if (m.type is BindingType) {
           return '${inner}.address.toJS';
         }
         return '$inner.toJS';
@@ -203,7 +199,9 @@ final class $enclosingClassName extends  ${isOpaque ? 'Struct' : dartClassName} 
       // For enum types, use 'AsInt' suffix so the enum getter can reference it.
       final isEnumClass = m.type is EnumClass;
       final generateAsInt = isEnumClass ? (m.type as EnumClass).generateAsInt : true;
-      final propertyName = (isEnumClass && !generateAsInt) ? '${memberName}AsInt' : memberName;
+      final propertyName = (isEnumClass && !generateAsInt)
+          ? '${memberName}AsInt'
+          : memberName;
 
       s.write('''
 $dartType get $propertyName {
@@ -211,24 +209,10 @@ $dartType get $propertyName {
   final value = NativeLibrary.instance.getValue(addr, '${m.type.llvmType}')$toDart;
   return ${box('value', 'addr')};
 }
-''');
-
-      // Inline struct fields use _copyBytes to copy the full struct value.
-      // Other types use setValue with the appropriate LLVM type.
-      final isInlineStruct = m.type is Compound;
-      if (isInlineStruct) {
-        s.write('''
-set $propertyName($dartType val) {
-  _copyBytes(this.address.addr + $offset, val.address.addr, ${m.type.sizeInBytes});
-}
-''');
-      } else {
-        s.write('''
 set $propertyName($dartType val) {
   NativeLibrary.instance.setValue(Pointer<$enclosingClassName>(this.address.addr + $offset), ${boxJS('val')}, '${m.type.llvmType}');
 }
 ''');
-      }
 
       if (isEnumClass && !generateAsInt) {
         final enumName = m.type.getDartType(w);
@@ -238,9 +222,7 @@ set $propertyName($dartType val) {
         );
       }
 
-      if (isStruct) {
-        offset += m.type.sizeInBytes;
-      }
+      offset += m.type.sizeInBytes;
     }
 
     // Add constructor with required named parameters
@@ -269,11 +251,6 @@ static Pointer<$name> stackAlloc() {
 
   @override
   bool get isIncompleteCompound => isIncomplete;
-
-  @override
-  String getWasmInteropType(Writer w) {
-    return name;
-  }
 
   @override
   String getInteropDartType(Writer w) {
