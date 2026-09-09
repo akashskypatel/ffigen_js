@@ -96,6 +96,8 @@ class NativeType extends Type {
           return 'Int32';
         case 'int64_t':
           return 'Int64';
+        case 'uint64_t':
+          return 'Uint64';
         case 'float':
           return 'Float32';
         case 'double':
