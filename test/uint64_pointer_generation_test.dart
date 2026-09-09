@@ -24,6 +24,6 @@ void main() {
 
     final output = writer.generate();
 
-    expect(output, contains('Pointer<Uint64> value'));
+    expect(output, contains('Pointer<Int64> value'));
   });
 }
