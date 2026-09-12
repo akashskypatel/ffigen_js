@@ -33,9 +33,6 @@ Map<String, SupportedNativeType> suportedTypedefToSuportedNativeType = {
   'int64_t': SupportedNativeType.int64,
   'intptr_t': SupportedNativeType.intPtr,
   'uintptr_t': SupportedNativeType.uintPtr,
-  // ffigen_js targets Emscripten wasm32, where size_t is always 32-bit.
-  // Do not inherit the host Clang ABI (for example, 64-bit size_t on Windows).
-  'size_t': SupportedNativeType.uint32,
 };
 
 Map<String, ImportedType> supportedTypedefToImportedType = {
